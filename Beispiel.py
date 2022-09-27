@@ -1,37 +1,38 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from os import name
 from random import randrange
 from typing import List
 
 
 class Subject(ABC):
     """
-    The Subject interface declares a set of methods for managing subscribers.
+    Die Subject Klasse definiert Methoden zum managen der Observer
     """
 
     @abstractmethod
     def attach(self, observer: Observer) -> None:
         """
-        Attach an observer to the subject.
+        Observer meldet sich beim Subject an
         """
         pass
 
     @abstractmethod
     def detach(self, observer: Observer) -> None:
         """
-        Detach an observer from the subject.
+        Observer meldet sich beim Subjekt ab
         """
         pass
 
     @abstractmethod
     def notify(self) -> None:
         """
-        Notify all observers about an event.
+        Benachrichtigt alle Observer ueber ein neues Event
         """
         pass
 
 
-class ConcreteSubject(Subject):
+class SpotifyPlaylist(Subject):
     """
     The Subject owns some important state and notifies observers when the state
     changes.
@@ -45,27 +46,28 @@ class ConcreteSubject(Subject):
 
     _observers: List[Observer] = []
     """
-    List of subscribers. In real life, the list of subscribers can be stored
+    Liste der Subscriber. 
+    In real life, the list of subscribers can be stored
     more comprehensively (categorized by event type, etc.).
     """
 
     def attach(self, observer: Observer) -> None:
-        print("Subject: Attached an observer.")
+        print("Subject: " + observer.name + " hinzugefuegt.")
         self._observers.append(observer)
 
     def detach(self, observer: Observer) -> None:
         self._observers.remove(observer)
 
     """
-    The subscription management methods.
+    Die Subscription Management Methoden
     """
 
     def notify(self) -> None:
         """
-        Trigger an update in each subscriber.
+        Triggered ein Update fuer jeden Subscriber
         """
 
-        print("Subject: Notifying observers...")
+        print("SpotifyPlaylist: Benachrichtigung der Oberserver...")
         for observer in self._observers:
             observer.update(self)
 
@@ -77,53 +79,56 @@ class ConcreteSubject(Subject):
         happen (or after it).
         """
 
-        print("\nSubject: I'm doing something important.")
+        print("\nSpotifyPlaylist: Ich mache etwas wichtiges.")
         self._state = randrange(0, 10)
 
-        print(f"Subject: My state has just changed to: {self._state}")
+        print(f"SpotifyPlaylist: Mein Status wurde geaendert zu: {self._state}")
         self.notify()
 
 
 class Observer(ABC):
     """
-    The Observer interface declares the update method, used by subjects.
+    Das Observer Interface deklariert die Update Methoden, die von dem Subjekt benutzt wird.
     """
+    def __init__(self, name):
+        self.name = name
 
     @abstractmethod
     def update(self, subject: Subject) -> None:
         """
-        Receive update from subject.
+        Erhalte Update vom Subjekt.
         """
         pass
 
 
 """
-Concrete Observers react to the updates issued by the Subject they had been
-attached to.
+Jeder konkrete Observer reagiert auf das Update vom Subjekt bei dem sie aboniert haben
+
 """
 
 
 class ConcreteObserverA(Observer):
+    
     def update(self, subject: Subject) -> None:
         if subject._state < 3:
-            print("ConcreteObserverA: Reacted to the event")
+            print("ConcreteObserverA: Reaktion auf das Event")
 
 
 class ConcreteObserverB(Observer):
     def update(self, subject: Subject) -> None:
         if subject._state == 0 or subject._state >= 2:
-            print("ConcreteObserverB: Reacted to the event")
+            print("ConcreteObserverB: Reaktion auf das Event")
 
 
 if __name__ == "__main__":
     # The client code.
 
-    subject = ConcreteSubject()
+    subject = SpotifyPlaylist()
 
-    observer_a = ConcreteObserverA()
+    observer_a = ConcreteObserverA("ObserverA")
     subject.attach(observer_a)
 
-    observer_b = ConcreteObserverB()
+    observer_b = ConcreteObserverB("ObserverB")
     subject.attach(observer_b)
 
     subject.some_business_logic()
