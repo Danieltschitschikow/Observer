@@ -4,21 +4,20 @@ from os import name
 from random import randrange
 from typing import List
 
-
 class Subject(ABC):
     """
     Die Subject Klasse definiert Methoden zum managen der Observer
     """
 
     @abstractmethod
-    def attach(self, observer: Observer) -> None:
+    def attach(self, observer: IObserver) -> None:
         """
         Observer meldet sich beim Subject an
         """
         pass
 
     @abstractmethod
-    def detach(self, observer: Observer) -> None:
+    def detach(self, observer: IObserver) -> None:
         """
         Observer meldet sich beim Subjekt ab
         """
@@ -37,25 +36,28 @@ class SpotifyPlaylist(Subject):
     The Subject owns some important state and notifies observers when the state
     changes.
     """
-
-    _state: int = None
     """
-    For the sake of simplicity, the Subject's state, essential to all
-    subscribers, is stored in this variable.
+    Verschiedene Dinge, die die SpotifyPlaylist tun kann
     """
 
-    _observers: List[Observer] = []
+    _events= {
+        1: "Song hinzugefuegt",
+        2: "Name der Playlist geaendert",
+        3: "Song entfernt"}
+
+    _observers: List[IObserver] = []
     """
     Liste der Subscriber. 
     In real life, the list of subscribers can be stored
     more comprehensively (categorized by event type, etc.).
     """
 
-    def attach(self, observer: Observer) -> None:
+    def attach(self, observer: IObserver) -> None:
         print("Subject: " + observer.name + " hinzugefuegt.")
         self._observers.append(observer)
 
-    def detach(self, observer: Observer) -> None:
+    def detach(self, observer: IObserver) -> None:
+        print(observer.name + " wurde aus der Aboliste entfernt.")
         self._observers.remove(observer)
 
     """
@@ -70,8 +72,9 @@ class SpotifyPlaylist(Subject):
         print("SpotifyPlaylist: Benachrichtigung der Oberserver...")
         for observer in self._observers:
             observer.update(self)
+            
 
-    def some_business_logic(self) -> None:
+    def song_hinzufuegen(self) -> None:
         """
         Usually, the subscription logic is only a fraction of what a Subject can
         really do. Subjects commonly hold some important business logic, that
@@ -79,18 +82,25 @@ class SpotifyPlaylist(Subject):
         happen (or after it).
         """
 
-        print("\nSpotifyPlaylist: Ich mache etwas wichtiges.")
+        print("\nSpotifyPlaylist: Ich habe einen Song zur Playlist hinzugefuegt.")
         self._state = randrange(0, 10)
+        
+        print(f"SpotifyPlaylist: Mein Status wurde geaendert zu: {self._state}")
+        self.notify()
 
+    def song_entfernen(self) -> None:
+        print("\nSpotifyPlaylist: Ich habe einen Song zur Playlist hinzugefuegt.")
+        self._state = randrange(0, 10)
+        
         print(f"SpotifyPlaylist: Mein Status wurde geaendert zu: {self._state}")
         self.notify()
 
 
-class Observer(ABC):
+class IObserver(ABC):
     """
-    Das Observer Interface deklariert die Update Methoden, die von dem Subjekt benutzt wird.
+    Das IObserver Interface deklariert die Update Methoden, die von dem Subjekt benutzt wird.
     """
-    def __init__(self, name):
+    def __init__(self, name, ):
         self.name = name
 
     @abstractmethod
@@ -107,17 +117,21 @@ Jeder konkrete Observer reagiert auf das Update vom Subjekt bei dem sie aboniert
 """
 
 
-class ConcreteObserverA(Observer):
+class Observer(IObserver):
     
-    def update(self, subject: Subject) -> None:
-        if subject._state < 3:
-            print("ConcreteObserverA: Reaktion auf das Event")
+    def update(self, subject: Subject,) -> None:
+        """
+        Hier koennte man Business Logik einfuehren und zum Beispiel nur bei bestimmten States
+        reagieren. Am Bespiel von Spotify dem Benutzer jedes mal eine Nachricht schicken,
+        wenn ein neues Lied zur Playlist hinzugefuegt wurde oder nur benachrichtigen, wenn
+        die Playlist umbenannt wird.
+        """
+        print("ObserverA: Reaktion auf das Event")
 
 
-class ConcreteObserverB(Observer):
+class ObserverB(IObserver):
     def update(self, subject: Subject) -> None:
-        if subject._state == 0 or subject._state >= 2:
-            print("ConcreteObserverB: Reaktion auf das Event")
+        print("ObserverB: Reaktion auf das Event")
 
 
 if __name__ == "__main__":
@@ -125,15 +139,14 @@ if __name__ == "__main__":
 
     subject = SpotifyPlaylist()
 
-    observer_a = ConcreteObserverA("ObserverA")
+    observer_a = Observer("ObserverA")
     subject.attach(observer_a)
 
-    observer_b = ConcreteObserverB("ObserverB")
+    observer_b = Observer("ObserverB")
     subject.attach(observer_b)
-
-    subject.some_business_logic()
-    subject.some_business_logic()
+    
+    subject.song_hinzufuegen()
 
     subject.detach(observer_a)
 
-    subject.some_business_logic()
+    subject.song_hinzufuegen()
